@@ -1,0 +1,91 @@
+<form>
+  <label>3PAR Array Performance</label>
+  <fieldset submitButton="false" autoRun="true">
+    <input type="multiselect" token="DC">
+      <label>DataCenter</label>
+      <fieldForLabel>DataCenter</fieldForLabel>
+      <fieldForValue>DataCenter</fieldForValue>
+      <search>
+        <query>index=storage sourcetype=3par:statcpu | dedup DataCenter | table DataCenter</query>
+        <earliest>-60m@m</earliest>
+        <latest>now</latest>
+      </search>
+      <choice value="*">ALL</choice>
+    </input>
+    <input type="multiselect" token="ARRAY">
+      <label>Array</label>
+      <choice value="*">ALL</choice>
+      <fieldForLabel>array</fieldForLabel>
+      <fieldForValue>array</fieldForValue>
+      <search>
+        <query>index=storage sourcetype=3par:statcpu $DC$ | dedup array | table array</query>
+        <earliest>-15m</earliest>
+        <latest>now</latest>
+      </search>
+      <delimiter> OR </delimiter>
+    </input>
+    <input type="multiselect" token="PORT">
+      <label>Port</label>
+      <fieldForLabel>Device</fieldForLabel>
+      <fieldForValue>Device</fieldForValue>
+      <search>
+        <query>index=storage sourcetype="3par:statport" $ARRAY$ | dedup Device | table Device | sort array</query>
+        <earliest>-15m</earliest>
+        <latest>now</latest>
+      </search>
+      <choice value="*">ALL</choice>
+      <prefix>Device=</prefix>
+      <delimiter> OR </delimiter>
+    </input>
+  </fieldset>
+  <row>
+    <panel>
+      <chart>
+        <search>
+          <query>index=storage sourcetype="3par:statcpu" cpu=total $ARRAY$ | eval pctBusy = sys + user | timechart avg(pctBusy) by array</query>
+          <earliest>-60m@m</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">line</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">right</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <chart>
+        <title>Read MB/s by Port</title>
+        <search>
+          <query>index=storage sourcetype="3par:statport" $ARRAY$ $PORT$| eval rMB_PS = rKB_PS/1024 | timechart avg(rMB_PS) by Device</query>
+          <earliest>-60m@m</earliest>
+          <latest>now</latest>
+        </search>
+        <option name="charting.axisY.scale">log</option>
+        <option name="charting.chart">line</option>
+        <option name="charting.chart.nullValueMode">connect</option>
+      </chart>
+    </panel>
+  </row>
+</form>

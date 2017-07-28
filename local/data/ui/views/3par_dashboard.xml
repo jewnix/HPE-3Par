@@ -1,0 +1,248 @@
+<form>
+  <label>3 PAR Dashboard</label>
+  <fieldset submitButton="false"></fieldset>
+  <row>
+    <panel>
+      <title>Live CPU FMG-3PAR1</title>
+      <chart>
+        <search>
+          <query>index=storage sourcetype=3par:statcpu array=fmg-3par1
+cpu=total| stats avg(cpu_load_percent)</query>
+          <earliest>rt-2m</earliest>
+          <latest>rtnow</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">radialGauge</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">connect</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">1</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">right</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>Live CPU DC1-3PAR1</title>
+      <chart>
+        <search>
+          <query>index=storage sourcetype=3par:statcpu array=dc1-3par1 cpu=total
+| stats avg(cpu_load_percent)</query>
+          <earliest>rt-2m</earliest>
+          <latest>rtnow</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">radialGauge</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">connect</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">1</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">right</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>Top LUN Throughput Last 60 Minutes</title>
+      <table>
+        <search>
+          <query>index=storage sourcetype="3par:statvv"
+| stats avg(total_thruput) AS total_thruput avg(read_thruput) AS read_thruput avg(write_thruput) AS write_thruput BY filesystem
+| eval thruput_mb = total_thruput/1024 | eval read_mb = read_thruput/1024 | eval write_mb = write_thruput/1024
+| eval thruput_mb=round(thruput_mb,2) | eval read_mb=round(read_mb,2) | eval write_mb=round(write_mb,2)
+| rename filesystem AS LUN read_mb AS "Read Throughput" write_mb AS "Write Throughput" thruput_mb AS "Total Throuput"
+| sort -"Total Throuput" | table LUN,"Read Throughput","Write Throughput","Total Throuput"</query>
+          <earliest>-60m@m</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+          <refresh>30s</refresh>
+          <refreshType>delay</refreshType>
+        </search>
+        <option name="count">100</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+        <option name="percentagesRow">false</option>
+        <option name="rowNumbers">false</option>
+        <option name="count">10</option>
+        <option name="showPager">true</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+    <panel>
+      <title>Top LUN IO/s Last 60 Minutes</title>
+      <table>
+        <search>
+          <query>index=storage sourcetype="3par:statvv"
+| stats avg(total_ops) AS total_ops avg(rReq_PS) AS rReq_PS avg(wReq_PS) AS wReq_PS BY filesystem
+| eval total_ops=round(total_ops,0) | eval rReq_PS=round(rReq_PS,0) | eval wReq_PS=round(wReq_PS,0)
+| rename filesystem AS LUN rReq_PS AS "Read IO/s" wReq_PS AS "Write IO/s" total_ops AS "Total IO/s"
+| sort -"Total IO/s" | table LUN,"Read IO/s","Write IO/s","Total IO/s"</query>
+          <earliest>-60m@m</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+          <refresh>30s</refresh>
+          <refreshType>delay</refreshType>
+        </search>
+        <option name="count">100</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+        <option name="percentagesRow">false</option>
+        <option name="rowNumbers">false</option>
+        <option name="count">10</option>
+        <option name="showPager">true</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>LUNs With Highest Read Latency Last 60 Minutes</title>
+      <table>
+        <search>
+          <query>index=storage sourcetype="3par:statvv" 
+| stats avg(read_latency) AS "Read Latency"  by filesystem 
+| sort -"Read Latency" | rename filesystem AS LUN</query>
+          <earliest>-60m@m</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+          <refresh>30s</refresh>
+          <refreshType>delay</refreshType>
+        </search>
+        <option name="count">100</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+        <option name="percentagesRow">false</option>
+        <option name="count">10</option>
+        <option name="showPager">true</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+    <panel>
+      <title>LUNs With Highest Write Latency Last 60 Minutes</title>
+      <table>
+        <search>
+          <query>index=storage sourcetype="3par:statvv" 
+| stats avg(write_latency) AS "Write Latency"  by filesystem 
+| sort -"Write Latency" | rename filesystem AS LUN</query>
+          <earliest>-60m@m</earliest>
+          <latest>now</latest>
+          <sampleRatio>1</sampleRatio>
+          <refresh>30s</refresh>
+          <refreshType>delay</refreshType>
+        </search>
+        <option name="count">100</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">cell</option>
+        <option name="percentagesRow">false</option>
+        <option name="rowNumbers">false</option>
+        <option name="totalsRow">false</option>
+        <option name="count">10</option>
+        <option name="showPager">true</option>
+        <option name="wrap">true</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <title>LUN MB/s</title>
+      <input type="time" token="time1" searchWhenChanged="true">
+        <label>time1</label>
+        <default>
+          <earliest>-60m@m</earliest>
+          <latest>now</latest>
+        </default>
+      </input>
+      <input type="dropdown" token="ARRAY" searchWhenChanged="true">
+        <label>Array</label>
+        <fieldForLabel>array</fieldForLabel>
+        <fieldForValue>array</fieldForValue>
+        <search>
+          <query>sourcetype=3par:statcpu | dedup array | table array</query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <prefix>array=*</prefix>
+      </input>
+      <input type="dropdown" token="LUN" searchWhenChanged="true">
+        <label>LUN</label>
+        <fieldForLabel>Device</fieldForLabel>
+        <fieldForValue>Device</fieldForValue>
+        <search>
+          <query>index=storage sourcetype=3par:statvv $ARRAY$ | dedup Device | table Device</query>
+          <earliest>-24h@h</earliest>
+          <latest>now</latest>
+        </search>
+        <choice value="*">All</choice>
+      </input>
+      <chart>
+        <search>
+          <query>index=storage sourcetype="3par:statvv" $LUN$ $ARRAY$
+| eval thruput_mb = total_thruput/1024 | eval read_mb = read_thruput/1024 | eval write_mb = write_thruput/1024
+| timechart avg(thruput_mb) AS Total avg(read_mb) AS Read avg(write_mb) AS Write</query>
+          <earliest>$time1.earliest$</earliest>
+          <latest>$time1.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">area</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">connect</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">stacked</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">right</option>
+      </chart>
+    </panel>
+  </row>
+</form>

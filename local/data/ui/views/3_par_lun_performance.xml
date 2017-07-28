@@ -1,0 +1,155 @@
+<form>
+  <label>3 PAR LUN Performance</label>
+  <fieldset submitButton="false">
+    <input type="time" token="time1" searchWhenChanged="true">
+      <label>Select Time Range</label>
+      <default>
+        <earliest>-60m@m</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+    <input type="dropdown" token="ARRAY" searchWhenChanged="true">
+      <label>Array</label>
+      <fieldForLabel>array</fieldForLabel>
+      <fieldForValue>array</fieldForValue>
+      <search>
+        <query>sourcetype=3par:statcpu | dedup array | table array</query>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </search>
+      <prefix>array=</prefix>
+      <choice value="*">All</choice>
+      <default>*</default>
+    </input>
+    <input type="dropdown" token="LUN" searchWhenChanged="true">
+      <label>LUN</label>
+      <fieldForLabel>Device</fieldForLabel>
+      <fieldForValue>Device</fieldForValue>
+      <search>
+        <query>index=storage sourcetype=3par:statvv $ARRAY$ | dedup Device | table Device</query>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </search>
+      <choice value="*">All</choice>
+      <default>*</default>
+      <prefix>Device=</prefix>
+    </input>
+    <input type="dropdown" token="INIT" searchWhenChanged="true">
+      <label>Initiator</label>
+      <fieldForLabel>Device</fieldForLabel>
+      <fieldForValue>Device</fieldForValue>
+      <search>
+        <query>index=storage sourcetype="3par:statvlun" $ARRAY$ | dedup Device | table Device</query>
+        <earliest>-60m@m</earliest>
+        <latest>now</latest>
+      </search>
+      <choice value="*">All</choice>
+      <prefix>Device=</prefix>
+      <default>*</default>
+    </input>
+    <input type="multiselect" token="PORT">
+      <label>Port</label>
+      <fieldForLabel>Port</fieldForLabel>
+      <fieldForValue>Port</fieldForValue>
+      <search>
+        <query>index=storage sourcetype="3par:showvlun" $LUN$ $ARRAY$ 
+| dedup Device Port | table Device Port</query>
+        <earliest>-48h</earliest>
+        <latest>now</latest>
+      </search>
+      <choice value="*">ALL</choice>
+      <prefix>Port=</prefix>
+    </input>
+  </fieldset>
+  <row>
+    <panel>
+      <title>LUN MB/s</title>
+      <chart>
+        <search>
+          <query>index=storage sourcetype="3par:statvv" $LUN$ $ARRAY$
+| eval thruput_mb = total_thruput/1024 | eval read_mb = read_thruput/1024 | eval write_mb = write_thruput/1024
+| timechart avg(thruput_mb) AS Total avg(read_mb) AS Read avg(write_mb) AS Write</query>
+          <earliest>$time1.earliest$</earliest>
+          <latest>$time1.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">area</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">connect</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">stacked</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">right</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>LUN I/O Per Second</title>
+      <chart>
+        <search>
+          <query>index=storage sourcetype="3par:statvv" $LUN$ $ARRAY$
+| eval total_ops=round(total_ops,0) | eval rReq_PS=round(rReq_PS,0) | eval wReq_PS=round(wReq_PS,0)
+| timechart avg(total_ops) AS Total avg(rReq_PS) AS Read avg(wReq_PS) AS Write</query>
+          <earliest>$time1.earliest$</earliest>
+          <latest>$time1.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+          <refresh>1m</refresh>
+          <refreshType>delay</refreshType>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">area</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">right</option>
+      </chart>
+    </panel>
+    <panel>
+      <title>LUN Latency</title>
+      <chart>
+        <search>
+          <query>index=storage sourcetype="3par:statvv" 
+$LUN$ $ARRAY$
+| timechart avg(read_latency) AS "Read Latency"  avg(write_latency) AS "Write Latency"</query>
+          <earliest>$time1.earliest$</earliest>
+          <latest>$time1.latest$</latest>
+          <refresh>1m</refresh>
+          <refreshType>delay</refreshType>
+        </search>
+        <option name="charting.chart">area</option>
+      </chart>
+    </panel>
+  </row>
+</form>
