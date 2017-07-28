@@ -6,7 +6,7 @@
       <title>Live CPU FMG-3PAR1</title>
       <chart>
         <search>
-          <query>index=storage sourcetype=3par:statcpu array=fmg-3par1
+          <query>index=storage sourcetype=3par:statcpu array=array1
 cpu=total| stats avg(cpu_load_percent)</query>
           <earliest>rt-2m</earliest>
           <latest>rtnow</latest>
@@ -41,7 +41,7 @@ cpu=total| stats avg(cpu_load_percent)</query>
       <title>Live CPU DC1-3PAR1</title>
       <chart>
         <search>
-          <query>index=storage sourcetype=3par:statcpu array=dc1-3par1 cpu=total
+          <query>index=storage sourcetype=3par:statcpu array=array2 cpu=total
 | stats avg(cpu_load_percent)</query>
           <earliest>rt-2m</earliest>
           <latest>rtnow</latest>
