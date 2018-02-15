@@ -1,81 +1,45 @@
-<form>
-  <label>3 PAR Dashboard</label>
-  <fieldset submitButton="false">
-    <input type="time" token="time1" searchWhenChanged="true">
-      <label>Time Range</label>
-      <default>
-        <earliest>-60m@m</earliest>
-        <latest>now</latest>
-      </default>
-    </input>
-    <input type="dropdown" token="ARRAY" searchWhenChanged="true">
-      <label>Array</label>
-      <fieldForLabel>array</fieldForLabel>
-      <fieldForValue>array</fieldForValue>
-      <search>
-        <query>| inputlookup 3par_arrays | stats count by array</query>
-        <earliest>-24h@h</earliest>
-        <latest>now</latest>
-      </search>
-      <choice value="*">All</choice>
-      <default>*</default>
-      <change>
-        <set token="display">$label$</set>
-      </change>
-    </input>
-  </fieldset>
+<dashboard refresh="30">
+  <label>3PAR Statistics</label>
   <row>
     <panel>
+      <title>3PAR CPU Stats</title>
       <chart>
-        <title>CPU Trend for $ARRAY$</title>
         <search>
-          <query>index=storage sourcetype=3par:statcpu $ARRAY$ cpu=total
-| timechart avg(cpu_load_percent) AS "Average Load"</query>
-          <earliest>$time1.earliest$</earliest>
-          <latest>$time1.latest$</latest>
+          <query>index=storage sourcetype=3par:statcpu cpu=total
+| stats avg(cpu_load_percent) AS "CPU Load" by array</query>
+          <earliest>-2m</earliest>
+          <latest>now</latest>
           <sampleRatio>1</sampleRatio>
-          <refresh>30s</refresh>
-          <refreshType>delay</refreshType>
         </search>
         <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
         <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
-        <option name="charting.axisTitleX.visibility">visible</option>
-        <option name="charting.axisTitleY.visibility">visible</option>
-        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.axisTitleY.visibility">collapsed</option>
+        <option name="charting.axisTitleY2.visibility">collapsed</option>
         <option name="charting.axisX.scale">linear</option>
         <option name="charting.axisY.scale">linear</option>
         <option name="charting.axisY2.enabled">0</option>
         <option name="charting.axisY2.scale">inherit</option>
-        <option name="charting.chart">line</option>
+        <option name="charting.chart">radialGauge</option>
         <option name="charting.chart.bubbleMaximumSize">50</option>
         <option name="charting.chart.bubbleMinimumSize">10</option>
         <option name="charting.chart.bubbleSizeBy">area</option>
-        <option name="charting.chart.nullValueMode">connect</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.rangeValues">[0,30,70,100]</option>
         <option name="charting.chart.showDataLabels">none</option>
         <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
         <option name="charting.chart.stackMode">default</option>
         <option name="charting.chart.style">shiny</option>
         <option name="charting.drilldown">all</option>
-        <option name="charting.layout.splitSeries">1</option>
+        <option name="charting.gaugeColors">["0x84E900","0xFFE800","0xBF3030"]</option>
+        <option name="charting.layout.splitSeries">0</option>
         <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
         <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
-        <option name="charting.legend.placement">right</option>
-      </chart>
-    </panel>
-    <panel>
-      <chart>
-        <title>Average Load All Arrays</title>
-        <search>
-          <query>index=storage sourcetype=3par:statcpu cpu=total 
-| timechart avg(cpu_load_percent) AS "Average Load" by array</query>
-          <earliest>$time1.earliest$</earliest>
-          <latest>$time1.latest$</latest>
-          <refresh>30s</refresh>
-          <refreshType>delay</refreshType>
-        </search>
-        <option name="charting.chart">line</option>
-        <option name="charting.drilldown">none</option>
-        <option name="charting.layout.splitSeries">1</option>
+        <option name="charting.legend.placement">none</option>
+        <option name="height">287</option>
+        <option name="trellis.enabled">1</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
       </chart>
     </panel>
   </row>
@@ -192,4 +156,4 @@
       </table>
     </panel>
   </row>
-</form>
+</dashboard>

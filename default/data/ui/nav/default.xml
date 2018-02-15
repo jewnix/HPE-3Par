@@ -1,7 +1,9 @@
 <nav search_view="search" color="#0400FC">
-  <view name="3par_dashboard" default='true' />
+  <view name="3par_statistics" default='true' />
   <collection label="Performance">
    <view name="3_par_lun_performance" />
+   <view name="3_par_port_performance" />
+   <view name="3par_dashboard" />
   </collection>
   <view name="reports" />
   <view name="alerts" />

@@ -13,7 +13,7 @@
       <fieldForLabel>array</fieldForLabel>
       <fieldForValue>array</fieldForValue>
       <search>
-        <query>sourcetype=3par:statcpu | dedup array | table array</query>
+        <query>| inputlookup 3par_arrays | fields array</query>
         <earliest>-24h@h</earliest>
         <latest>now</latest>
       </search>
@@ -23,42 +23,17 @@
     </input>
     <input type="dropdown" token="LUN" searchWhenChanged="true">
       <label>LUN</label>
-      <fieldForLabel>Device</fieldForLabel>
-      <fieldForValue>Device</fieldForValue>
+      <fieldForLabel>VVName</fieldForLabel>
+      <fieldForValue>VVName</fieldForValue>
       <search>
-        <query>index=storage sourcetype=3par:statvv $ARRAY$ | dedup Device | table Device</query>
+        <query>| inputlookup 3par_devices | dedup array VVName | search $ARRAY$ 
+| fields VVName</query>
         <earliest>-24h@h</earliest>
         <latest>now</latest>
       </search>
       <choice value="*">All</choice>
       <default>*</default>
       <prefix>Device=</prefix>
-    </input>
-    <input type="dropdown" token="INIT" searchWhenChanged="true">
-      <label>Initiator</label>
-      <fieldForLabel>Device</fieldForLabel>
-      <fieldForValue>Device</fieldForValue>
-      <search>
-        <query>index=storage sourcetype="3par:statvlun" $ARRAY$ | dedup Device | table Device</query>
-        <earliest>-60m@m</earliest>
-        <latest>now</latest>
-      </search>
-      <choice value="*">All</choice>
-      <prefix>Device=</prefix>
-      <default>*</default>
-    </input>
-    <input type="multiselect" token="PORT">
-      <label>Port</label>
-      <fieldForLabel>Port</fieldForLabel>
-      <fieldForValue>Port</fieldForValue>
-      <search>
-        <query>index=storage sourcetype="3par:showvlun" $LUN$ $ARRAY$ 
-| dedup Device Port | table Device Port</query>
-        <earliest>-48h</earliest>
-        <latest>now</latest>
-      </search>
-      <choice value="*">ALL</choice>
-      <prefix>Port=</prefix>
     </input>
   </fieldset>
   <row>
@@ -67,7 +42,7 @@
       <chart>
         <search>
           <query>index=storage sourcetype="3par:statvv" $LUN$ $ARRAY$
-| eval thruput_mb = total_thruput/1024 | eval read_mb = read_thruput/1024 | eval write_mb = write_thruput/1024
+| eval thruput_mb = thruput/1024 | eval read_mb = read_thruput/1024 | eval write_mb = write_thruput/1024
 | timechart avg(thruput_mb) AS Total avg(read_mb) AS Read avg(write_mb) AS Write</query>
           <earliest>$time1.earliest$</earliest>
           <latest>$time1.latest$</latest>
@@ -103,8 +78,8 @@
       <chart>
         <search>
           <query>index=storage sourcetype="3par:statvv" $LUN$ $ARRAY$
-| eval total_ops=round(total_ops,0) | eval rReq_PS=round(rReq_PS,0) | eval wReq_PS=round(wReq_PS,0)
-| timechart avg(total_ops) AS Total avg(rReq_PS) AS Read avg(wReq_PS) AS Write</query>
+| eval ops=round(ops,0) | eval rReq_PS=round(rReq_PS,0) | eval wReq_PS=round(wReq_PS,0)
+| timechart avg(ops) AS Total avg(rReq_PS) AS Read avg(wReq_PS) AS Write</query>
           <earliest>$time1.earliest$</earliest>
           <latest>$time1.latest$</latest>
           <sampleRatio>1</sampleRatio>
@@ -124,7 +99,7 @@
         <option name="charting.chart.bubbleMaximumSize">50</option>
         <option name="charting.chart.bubbleMinimumSize">10</option>
         <option name="charting.chart.bubbleSizeBy">area</option>
-        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.nullValueMode">connect</option>
         <option name="charting.chart.showDataLabels">none</option>
         <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
         <option name="charting.chart.stackMode">default</option>
@@ -149,6 +124,7 @@ $LUN$ $ARRAY$
           <refreshType>delay</refreshType>
         </search>
         <option name="charting.chart">area</option>
+        <option name="charting.chart.nullValueMode">connect</option>
       </chart>
     </panel>
   </row>
